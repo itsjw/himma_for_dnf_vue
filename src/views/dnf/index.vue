@@ -9,43 +9,43 @@
 
       <el-table-column align="center" label="序号" width="125">
         <template scope="scope">
-          <span>{{scope.row.id}}</span>
+          <span>{{scope.id}}</span>
         </template>
       </el-table-column>
 
       <el-table-column width="180px" align="center" label="创建时间">
         <template scope="scope">
-          <span>{{scope.row.time | parseTime('{y}-{m}-{d} {h}:{i}')}}</span>
+          <span>{{scope.row.createdAt | parseTime('{y}-{m}-{d} {h}:{i}')}}</span>
         </template>
       </el-table-column>
 
       <el-table-column min-width="100px" label="职业">
         <template scope="scope">
-          <span>{{scope.row.type | typeFilter}}</span>
+          <span>{{scope.row.workerType | typeFilter}}</span>
         </template>
       </el-table-column>
 
       <el-table-column min-width="150px" label="角色名称">
         <template scope="scope">
-          <span>{{scope.row.title}}</span>
+          <span>{{scope.row.workerName}}</span>
         </template>
       </el-table-column>
 
       <el-table-column min-width="300px" label="疲劳值">
         <template scope="scope">
-            <el-progress :text-inside="true" :status="scope.row.pl | plStatusFilter" :stroke-width="13" :percentage="scope.row.pl"></el-progress>
+            <el-progress :text-inside="true" :status="scope.row.surplusPl | plStatusFilter" :stroke-width="13" :percentage="scope.row.surplusPl"></el-progress>
         </template>
       </el-table-column>
 
       <el-table-column min-width="100px" label="当天收益">
         <template scope="scope">
-          <span>{{profit}}</span>
+          <span>{{scope.row.todayProfit}}</span>
         </template>
       </el-table-column>
 
       <el-table-column min-width="130px" label="耗时">
         <template scope="scope">
-          <span>{{scope.row.consuming}}</span>
+          <span>{{scope.row.timeUsed}}</span>
         </template>
       </el-table-column>
 
@@ -225,13 +225,13 @@
 </template>
 
 <script>
-  import { fetchList, fetchPv } from '@/api/article'
+  import { fetchPv } from '@/api/article'
   import waves from '@/directive/waves/index.js' // 水波纹指令
   import { parseTime } from '@/utils'
-  import { loginByUsername } from '@/api/login'
-  const calendarTypeOptions = [
-    { code: 'HH', name: '花花' }
-  ]
+  import { getWorkTypeList, createWorker, getWorkerList } from '@/api/himma'
+  import { getToken } from '@/utils/auth'
+
+  const calendarTypeOptions = []
 
   // arr to obj
   const calendarTypeKeyValue = calendarTypeOptions.reduce((acc, cur) => {
@@ -270,19 +270,17 @@
           ws: 95,
           ywys: 500
         },
-        demolist:
-        [
+        list: [
           {
-            id: 1,
-            time: '928030255229',
-            title: '888X888X888',
-            status: '1',
-            type: 'KZS',
-            pl: 25,
-            consuming: '25:00'
+            createdAt: 1511365883615,
+            status: 1,
+            surplusPl: 188,
+            timeUsed: '20:00',
+            todayProfit: 220,
+            workerName: '888x888x888',
+            workerType: 'BHLL'
           }
         ],
-        list: null,
         total: null,
         listLoading: true,
         listQuery: {
@@ -349,12 +347,20 @@
     },
     methods: {
       getList() {
-        this.listLoading = true
-        fetchList(this.listQuery).then(response => {
-          this.list = this.demolist
-          this.total = 1
-          this.listLoading = false
-          console.log(this.total)
+        this.total = 1
+        this.listLoading = false
+        getWorkTypeList().then(response => {
+          const data = response.data
+          this.calendarTypeOptions = data.results
+          alert(calendarTypeKeyValue['BHLL'])
+        }).catch(() => {
+          this.loading = false
+        })
+        getWorkerList().then(response => {
+          const data = response.data
+          console.log(data)
+        }).catch(() => {
+          this.loading = false
         })
       },
       handleFilter() {
@@ -403,12 +409,7 @@
       handleCreate() {
         this.resetTemp()
         this.dialogStatus = 'create'
-        loginByUsername('admin', '1994819n@').then(response => {
-          const data = response.data
-          console.log(data)
-        }).catch(() => {
-          this.dialogFormVisible = false
-        })
+        alert(calendarTypeKeyValue['BHLL'])
         this.dialogFormVisible = true
       },
       goToHimmaCreate() {
@@ -431,11 +432,13 @@
         this.list.splice(index, 1)
       },
       create() {
-        this.temp.id = parseInt(Math.random() * 100) + 1024
-        this.temp.time = +new Date()
-        this.temp.status = 1
-        console.log(this.temp)
-        this.list.unshift(this.temp)
+        createWorker(this.temp.type, this.temp.title, getToken()).then(response => {
+          const data = response.data
+          console.log(data)
+        }).catch(() => {
+          this.loading = false
+        })
+        console.log(this.temp.type)
         this.dialogFormVisible = false
         this.$notify({
           title: '成功',
