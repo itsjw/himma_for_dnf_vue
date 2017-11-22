@@ -76,6 +76,7 @@ export const asyncRouterMap = [
     redirect: 'noredirect',
     icon: 'excel',
     noDropdown: true,
+    meta: { role: 'admin' },
     children: [{ path: 'index', component: _import('dnf/index'), name: 'dnf' }]
   },
   { path: '*', redirect: '/404', hidden: true }
