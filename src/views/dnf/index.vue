@@ -91,7 +91,7 @@
       <el-form class="small-space" :model="temp" label-position="left" label-width="70px" style='width: 400px; margin-left:50px;'>
         <el-form-item label="角色职业">
           <el-select class="filter-item" v-model="temp.type" placeholder="请选择">
-            <el-option v-for="item in  calendarTypeOptions" :key="item.key" :label="item.display_name" :value="item.key">
+            <el-option v-for="item in  calendarTypeOptions" :key="item.code" :label="item.name" :value="item.code">
             </el-option>
           </el-select>
         </el-form-item>
@@ -228,17 +228,14 @@
   import { fetchList, fetchPv } from '@/api/article'
   import waves from '@/directive/waves/index.js' // 水波纹指令
   import { parseTime } from '@/utils'
-
+  import { loginByUsername } from '@/api/login'
   const calendarTypeOptions = [
-    { key: 'HH', display_name: '花花' },
-    { key: 'KZS', display_name: '狂战士' },
-    { key: 'PPD', display_name: '帕帕丁' },
-    { key: 'DZZ', display_name: '缔造者' }
+    { code: 'HH', name: '花花' }
   ]
 
   // arr to obj
   const calendarTypeKeyValue = calendarTypeOptions.reduce((acc, cur) => {
-    acc[cur.key] = cur.display_name
+    acc[cur.code] = cur.name
     return acc
   }, {})
 
@@ -406,6 +403,12 @@
       handleCreate() {
         this.resetTemp()
         this.dialogStatus = 'create'
+        loginByUsername('admin', '1994819n@').then(response => {
+          const data = response.data
+          console.log(data)
+        }).catch(() => {
+          this.dialogFormVisible = false
+        })
         this.dialogFormVisible = true
       },
       goToHimmaCreate() {
