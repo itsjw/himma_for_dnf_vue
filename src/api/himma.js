@@ -1,26 +1,25 @@
 import fetch from '@/utils/fetch'
 
-export function getWorkTypeList() {
+export function getHimmaTypeList() {
   return fetch({
-    url: '/himma/getWorkTypeList',
+    url: '/himma/getHimmaTypeList',
     method: 'get'
   })
 }
-export function createWorker(workerType, workerName, token) {
+export function createHimma(typeId, name) {
   const data = {
-    workerType,
-    workerName,
-    token
+    typeId,
+    name
   }
   return fetch({
-    url: '/himma/createWorker',
+    url: '/himma/createHimma',
     method: 'post',
     data
   })
 }
-export function getWorkerList() {
+export function getHimmaList() {
   return fetch({
-    url: '/himma/getWorkerList',
+    url: '/himma/getHimmaList',
     method: 'get'
   })
 }

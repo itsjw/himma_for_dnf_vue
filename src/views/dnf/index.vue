@@ -5,7 +5,7 @@
       <el-button class="filter-item" style="margin-left: 10px;" @click="handleCreate" type="primary" icon="edit">添加</el-button>
     </div>
 
-    <el-table :key='tableKey' :data="list" v-loading="listLoading" element-loading-text="loading" border fit highlight-current-row style="width: 100%">
+    <el-table :key='tableKey' :data="himmaList" v-loading="listLoading" element-loading-text="loading" border fit highlight-current-row style="width: 100%">
 
       <el-table-column align="center" label="序号" width="125">
         <template scope="scope">
@@ -21,13 +21,13 @@
 
       <el-table-column min-width="100px" label="职业">
         <template scope="scope">
-          <span>{{scope.row.workerType | typeFilter}}</span>
+          <span>{{scope.row.type}}</span>
         </template>
       </el-table-column>
 
       <el-table-column min-width="150px" label="角色名称">
         <template scope="scope">
-          <span>{{scope.row.workerName}}</span>
+          <span>{{scope.row.name}}</span>
         </template>
       </el-table-column>
 
@@ -52,7 +52,7 @@
 
       <el-table-column min-width="300px" label="开始">
         <template scope="scope">
-          <el-button size="small" :disabled="scope.row.pl | judegHimmaFilter" @click="goToHimmaCreate">搬砖gogogo
+          <el-button size="small" :disabled="scope.row.surplusPl | judegHimmaFilter" @click="goToHimmaCreate">搬砖gogogo
           </el-button>
         </template>
       </el-table-column>
@@ -88,17 +88,17 @@
     </div>
 
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible">
-      <el-form class="small-space" :model="temp" label-position="left" label-width="70px" style='width: 400px; margin-left:50px;'>
+      <el-form class="small-space" :model="himmaType" label-position="left" label-width="70px" style='width: 400px; margin-left:50px;'>
         <el-form-item label="角色职业">
-          <el-select class="filter-item" v-model="temp.type" placeholder="请选择">
-            <el-option v-for="item in  calendarTypeOptions" :key="item.code" :label="item.name" :value="item.code">
+          <el-select class="filter-item" v-model="himmaType.id" placeholder="请选择">
+            <el-option v-for="item in  himmaTypeList" :key="item.id" :label="item.name" :value="item.id">
             </el-option>
           </el-select>
         </el-form-item>
 
 
         <el-form-item label="角色名称">
-          <el-input v-model="temp.title"></el-input>
+          <el-input v-model="himmaType.name"></el-input>
         </el-form-item>
 
       </el-form>
@@ -122,32 +122,32 @@
                   <h2 align="center">起始</h2>
                 </div>
                 <div class="text item">
-                  <el-form class="small-space" :model="temp" label-position="left" label-width="90px">
+                  <el-form class="small-space" :model="himma" label-position="left" label-width="90px">
                     <el-form-item label="魔刹石：">
-                      <el-input v-model="startCount.mss" :disabled="temp.status!='1'" style='width: 150px;'></el-input>
+                      <el-input v-model="startCount.mss" :disabled="himma.status!='1'" style='width: 150px;'></el-input>
                     </el-form-item>
                     <el-form-item label="挑战书：">
-                      <el-input v-model="startCount.tzs" :disabled="temp.status!='1'"  style='width: 150px;'></el-input>
+                      <el-input v-model="startCount.tzs" :disabled="himma.status!='1'"  style='width: 150px;'></el-input>
                     </el-form-item>
                     <el-form-item label="无色：">
-                      <el-input v-model="startCount.ws" :disabled="temp.status!='1'" style='width: 150px;'></el-input>
+                      <el-input v-model="startCount.ws" :disabled="himma.status!='1'" style='width: 150px;'></el-input>
                     </el-form-item>
                     <el-form-item label="遗忘陨石：">
-                      <el-input v-model="startCount.ywys" :disabled="temp.status!='1'" style='width: 150px;'></el-input>
+                      <el-input v-model="startCount.ywys" :disabled="himma.status!='1'" style='width: 150px;'></el-input>
                     </el-form-item>
                     <el-form-item label="起始金币：">
-                      <el-input v-model="startCount.jb" :disabled="temp.status!='1'" style='width: 150px;'></el-input>
+                      <el-input v-model="startCount.jb" :disabled="himma.status!='1'" style='width: 150px;'></el-input>
                     </el-form-item>
                     <el-form-item size="large">
-                      <el-button v-if="temp.status=='0'" type="warning" @click="changeHimmaStatus('2')">暂停
+                      <el-button v-if="himma.status=='0'" type="warning" @click="changeHimmaStatus('2')">暂停
                       </el-button>
-                      <el-button v-if="temp.status=='1'" type="primary" @click="changeHimmaStatus('0')" round>点击开始搬砖
+                      <el-button v-if="himma.status=='1'" type="primary" @click="changeHimmaStatus('0')" round>点击开始搬砖
                       </el-button>
-                      <el-button v-if="temp.status=='2'" type="success" @click="changeHimmaStatus('0')">继续
+                      <el-button v-if="himma.status=='2'" type="success" @click="changeHimmaStatus('0')">继续
                       </el-button>
-                      <el-button v-if="temp.status=='2'" type="danger" @click="changeHimmaStatus('4')">结束
+                      <el-button v-if="himma.status=='2'" type="danger" @click="changeHimmaStatus('4')">结束
                       </el-button>
-                      <el-button v-if="temp.status=='4'" style='color: #bcbcbc;' disabled>已结束
+                      <el-button v-if="himma.status=='4'" style='color: #bcbcbc;' disabled>已结束
                       </el-button>
                     </el-form-item>
                   </el-form>
@@ -161,7 +161,7 @@
                 </div>
                 <div class="text item">
                   <el-col :span="6">
-                    <el-form class="small-space" :model="temp" label-position="left" label-width="90px" style='width: 400px; margin-left:0px;'>
+                    <el-form class="small-space" :model="himma" label-position="left" label-width="90px" style='width: 400px; margin-left:0px;'>
                       <el-form-item label="魔刹石：">
                         <el-input v-model="endCount.mss" :disabled="endCount.status!='1'" style='width: 150px;'></el-input>
                       </el-form-item>
@@ -198,7 +198,7 @@
                 </div>
                 <div class="text item">
                   <el-col :span="6" style='width: 300px;'>
-                    <el-form class="small-space" :model="temp" label-position="left" label-width="110px" style='width: 400px; margin-left:0px;'>
+                    <el-form class="small-space" :model="himma" label-position="left" label-width="110px" style='width: 400px; margin-left:0px;'>
                       <el-form-item label="魔刹石：">
                         <el-input v-model="price.mss" :disabled="0!='1'" style='width: 100px;'></el-input>
                       </el-form-item>
@@ -228,16 +228,7 @@
   import { fetchPv } from '@/api/article'
   import waves from '@/directive/waves/index.js' // 水波纹指令
   import { parseTime } from '@/utils'
-  import { getWorkTypeList, createWorker, getWorkerList } from '@/api/himma'
-  import { getToken } from '@/utils/auth'
-
-  const calendarTypeOptions = []
-
-  // arr to obj
-  const calendarTypeKeyValue = calendarTypeOptions.reduce((acc, cur) => {
-    acc[cur.code] = cur.name
-    return acc
-  }, {})
+  import { getHimmaTypeList, createHimma, getHimmaList } from '@/api/himma'
 
   export default {
     name: 'table_demo',
@@ -270,15 +261,15 @@
           ws: 95,
           ywys: 500
         },
-        list: [
+        himmaList: [
           {
             createdAt: 1511365883615,
             status: 1,
             surplusPl: 188,
             timeUsed: '20:00',
             todayProfit: 220,
-            workerName: '888x888x888',
-            workerType: 'BHLL'
+            name: '888x888x888',
+            type: 'BHLL'
           }
         ],
         total: null,
@@ -291,15 +282,14 @@
           type: undefined,
           sort: '+id'
         },
-        temp: {
+        himmaType: {
           id: undefined,
-          title: '',
-          status: '1'
+          name: ''
         },
-        importanceOptions: [1, 2, 3],
-        calendarTypeOptions,
-        sortOptions: [{ label: '按ID升序列', key: '+id' }, { label: '按ID降序', key: '-id' }],
-        statusOptions: ['published', 'draft', 'deleted'],
+        himma: {
+          status: 1
+        },
+        himmaTypeList: [],
         dialogFormVisible: false,
         dialogHimmaVisible: false,
         dialogStatus: '',
@@ -337,9 +327,6 @@
           0: 'danger'
         }
         return statusMap[status]
-      },
-      typeFilter(type) {
-        return calendarTypeKeyValue[type]
       }
     },
     created() {
@@ -349,16 +336,15 @@
       getList() {
         this.total = 1
         this.listLoading = false
-        getWorkTypeList().then(response => {
+        getHimmaTypeList().then(response => {
           const data = response.data
-          this.calendarTypeOptions = data.results
-          alert(calendarTypeKeyValue['BHLL'])
+          this.himmaTypeList = data.results
         }).catch(() => {
           this.loading = false
         })
-        getWorkerList().then(response => {
+        getHimmaList().then(response => {
           const data = response.data
-          console.log(data)
+          this.himmaList = data.results
         }).catch(() => {
           this.loading = false
         })
@@ -389,7 +375,6 @@
           message: '操作成功',
           type: 'success'
         })
-        this.temp.status = status
       },
       changeEndHimmaStatus(status) {
         this.$message({
@@ -407,9 +392,7 @@
         row.status = status
       },
       handleCreate() {
-        this.resetTemp()
         this.dialogStatus = 'create'
-        alert(calendarTypeKeyValue['BHLL'])
         this.dialogFormVisible = true
       },
       goToHimmaCreate() {
@@ -432,13 +415,12 @@
         this.list.splice(index, 1)
       },
       create() {
-        createWorker(this.temp.type, this.temp.title, getToken()).then(response => {
+        createHimma(this.himmaType.id, this.himmaType.name).then(response => {
           const data = response.data
-          console.log(data)
+          console.log(data.results)
         }).catch(() => {
           this.loading = false
         })
-        console.log(this.temp.type)
         this.dialogFormVisible = false
         this.$notify({
           title: '成功',
@@ -448,14 +430,6 @@
         })
       },
       update() {
-        this.temp.timestamp = +this.temp.timestamp
-        for (const v of this.list) {
-          if (v.id === this.temp.id) {
-            const index = this.list.indexOf(v)
-            this.list.splice(index, 1, this.temp)
-            break
-          }
-        }
         this.dialogFormVisible = false
         this.$notify({
           title: '成功',
@@ -463,15 +437,6 @@
           type: 'success',
           duration: 2000
         })
-      },
-      resetTemp() {
-        this.temp = {
-          id: undefined,
-          time: 0,
-          title: '',
-          status: '',
-          type: ''
-        }
       },
       handleFetchPv(pv) {
         fetchPv(pv).then(response => {
