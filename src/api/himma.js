@@ -23,3 +23,21 @@ export function getHimmaList() {
     method: 'get'
   })
 }
+export function startHimma(himmaId) {
+  return fetch({
+    url: '/himma/startHimma',
+    method: 'get',
+    params: { himmaId }
+  })
+}
+export function endHimma(himmaInfo, himmaId) {
+  const data = {
+    himmaInfo,
+    himmaId
+  }
+  return fetch({
+    url: '/himma/endHimma',
+    method: 'post',
+    data
+  })
+}

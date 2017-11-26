@@ -9,7 +9,7 @@
 
       <el-table-column align="center" label="序号" width="125">
         <template scope="scope">
-          <span>{{scope.id}}</span>
+          <span>{{scope.row.id}}</span>
         </template>
       </el-table-column>
 
@@ -52,7 +52,7 @@
 
       <el-table-column min-width="300px" label="开始">
         <template scope="scope">
-          <el-button size="small" :disabled="scope.row.surplusPl | judegHimmaFilter" @click="goToHimmaCreate">搬砖gogogo
+          <el-button size="small" :disabled="scope.row.surplusPl | judegHimmaFilter" @click="goToHimmaCreate(scope.row.id)">搬砖gogogo
           </el-button>
         </template>
       </el-table-column>
@@ -122,32 +122,32 @@
                   <h2 align="center">起始</h2>
                 </div>
                 <div class="text item">
-                  <el-form class="small-space" :model="himma" label-position="left" label-width="90px">
-                    <el-form-item label="魔刹石：">
-                      <el-input v-model="startCount.mss" :disabled="himma.status!='1'" style='width: 150px;'></el-input>
-                    </el-form-item>
-                    <el-form-item label="挑战书：">
-                      <el-input v-model="startCount.tzs" :disabled="himma.status!='1'"  style='width: 150px;'></el-input>
-                    </el-form-item>
-                    <el-form-item label="无色：">
-                      <el-input v-model="startCount.ws" :disabled="himma.status!='1'" style='width: 150px;'></el-input>
-                    </el-form-item>
-                    <el-form-item label="遗忘陨石：">
-                      <el-input v-model="startCount.ywys" :disabled="himma.status!='1'" style='width: 150px;'></el-input>
-                    </el-form-item>
-                    <el-form-item label="起始金币：">
-                      <el-input v-model="startCount.jb" :disabled="himma.status!='1'" style='width: 150px;'></el-input>
+                  <el-form class="small-space" :model="himma" label-position="left" label-width="0px">
+                    <el-form-item size="large" v-for="option in options">
+                      <el-select v-model="value" placeholder="请选择" style='width: 100px;'>
+                        <el-option
+                          v-for="item in option"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                      </el-select>
+                      <el-input v-model="startCount.mss" :disabled="himma.status!='1'" style='width: 140px;'></el-input>
                     </el-form-item>
                     <el-form-item size="large">
-                      <el-button v-if="himma.status=='0'" type="warning" @click="changeHimmaStatus('2')">暂停
+                      <el-button type="primary" @click="addOption()">添加
                       </el-button>
-                      <el-button v-if="himma.status=='1'" type="primary" @click="changeHimmaStatus('0')" round>点击开始搬砖
+                    </el-form-item>
+                    <el-form-item size="large">
+                      <el-button v-if="himma.status===0" type="warning" @click="changeHimmaStatus(2)">暂停
                       </el-button>
-                      <el-button v-if="himma.status=='2'" type="success" @click="changeHimmaStatus('0')">继续
+                      <el-button v-if="himma.status===1" type="primary" @click="changeHimmaStatus(0)" round>点击开始搬砖
                       </el-button>
-                      <el-button v-if="himma.status=='2'" type="danger" @click="changeHimmaStatus('4')">结束
+                      <el-button v-if="himma.status===2" type="success" @click="changeHimmaStatus(0)">继续
                       </el-button>
-                      <el-button v-if="himma.status=='4'" style='color: #bcbcbc;' disabled>已结束
+                      <el-button v-if="himma.status===0||himma.status===2" type="danger" @click="changeHimmaStatus(4)">结束
+                      </el-button>
+                      <el-button v-if="himma.status===4" style='color: #bcbcbc;' disabled>已结束
                       </el-button>
                     </el-form-item>
                   </el-form>
@@ -225,10 +225,8 @@
 </template>
 
 <script>
-  import { fetchPv } from '@/api/article'
   import waves from '@/directive/waves/index.js' // 水波纹指令
-  import { parseTime } from '@/utils'
-  import { getHimmaTypeList, createHimma, getHimmaList } from '@/api/himma'
+  import { getHimmaTypeList, createHimma, getHimmaList, startHimma, endHimma } from '@/api/himma'
 
   export default {
     name: 'table_demo',
@@ -237,7 +235,51 @@
     },
     data() {
       return {
+        options: [
+          [{
+            value: '选项1',
+            label: '黄金糕'
+          }, {
+            value: '选项2',
+            label: '双皮奶'
+          }, {
+            value: '选项3',
+            label: '蚵仔煎'
+          }, {
+            value: '选项4',
+            label: '龙须面'
+          }, {
+            value: '选项5',
+            label: '北京烤鸭'
+          }],
+          [{
+            value: '选项1',
+            label: '黄金糕'
+          }, {
+            value: '选项2',
+            label: '双皮奶'
+          }, {
+            value: '选项3',
+            label: '蚵仔煎'
+          }, {
+            value: '选项4',
+            label: '龙须面'
+          }, {
+            value: '选项5',
+            label: '北京烤鸭'
+          }]
+        ],
+        value: '',
+        himmaId: 0,
         profit: 0,
+        himmaInfo: {
+          mssCount: 0,
+          tzsCount: 0,
+          wsCount: 0,
+          ywys: 0,
+          ywsh: 0,
+          jb: 0
+        },
         startCount: {
           mss: 0,
           tzs: 0,
@@ -263,6 +305,7 @@
         },
         himmaList: [
           {
+            id: 1,
             createdAt: 1511365883615,
             status: 1,
             surplusPl: 188,
@@ -298,9 +341,6 @@
           create: '创建',
           goToHimma: '搬砖'
         },
-        dialogPvVisible: false,
-        pvData: [],
-        showAuditor: false,
         tableKey: 0
       }
     },
@@ -353,14 +393,6 @@
         this.listQuery.page = 1
         this.getList()
       },
-      handleSizeChange(val) {
-        this.listQuery.limit = val
-        this.getList()
-      },
-      handleCurrentChange(val) {
-        this.listQuery.page = val
-        this.getList()
-      },
       timeFilter(time) {
         if (!time[0]) {
           this.listQuery.start = undefined
@@ -370,12 +402,6 @@
         this.listQuery.start = parseInt(+time[0] / 1000)
         this.listQuery.end = parseInt((+time[1] + 3600 * 1000 * 24) / 1000)
       },
-      changeHimmaStatus(status) {
-        this.$message({
-          message: '操作成功',
-          type: 'success'
-        })
-      },
       changeEndHimmaStatus(status) {
         this.$message({
           message: '操作成功',
@@ -383,6 +409,33 @@
         })
         this.profit = (((this.endCount.mss - this.startCount.mss) * this.price.mss) + ((this.endCount.tzs - this.startCount.tzs) * this.price.tzs) + ((this.endCount.ws - this.startCount.ws) * this.price.ws) + ((this.endCount.ywys - this.startCount.ywys) * this.price.ywys + (this.endCount.jb - this.startCount.jb)) + Number(this.endCount.ywsh))
         this.endCount.status = status
+        endHimma(JSON.stringify(this.himmaInfo), this.himmaId).then(response => {
+          const data = response.data
+          alert(2)
+          console.log(data.results)
+        }).catch(() => {
+          this.loading = false
+        })
+      },
+      changeHimmaStatus(status) {
+        this.$message({
+          message: '操作成功',
+          type: 'success'
+        })
+        this.himma.status = status
+        // 开始搬砖
+        if (status === 0) {
+          startHimma(this.himmaId).then(response => {
+            const data = response.data
+            console.log(data.results)
+          }).catch(() => {
+            this.loading = false
+          })
+        }
+        // 结束搬砖
+        if (status === 4) {
+          alert(1)
+        }
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -395,7 +448,8 @@
         this.dialogStatus = 'create'
         this.dialogFormVisible = true
       },
-      goToHimmaCreate() {
+      goToHimmaCreate(id) {
+        this.himmaId = id
         this.dialogStatus = 'goToHimma'
         this.dialogHimmaVisible = true
       },
@@ -416,8 +470,7 @@
       },
       create() {
         createHimma(this.himmaType.id, this.himmaType.name).then(response => {
-          const data = response.data
-          console.log(data.results)
+          this.handleFilter()
         }).catch(() => {
           this.loading = false
         })
@@ -438,29 +491,8 @@
           duration: 2000
         })
       },
-      handleFetchPv(pv) {
-        fetchPv(pv).then(response => {
-          this.pvData = response.data.pvData
-          this.dialogPvVisible = true
-        })
-      },
-      handleDownload() {
-        require.ensure([], () => {
-          const { export_json_to_excel } = require('vendor/Export2Excel')
-          const tHeader = ['时间', '地区', '类型', '标题', '重要性']
-          const filterVal = ['timestamp', 'province', 'type', 'title', 'importance']
-          const data = this.formatJson(filterVal, this.list)
-          export_json_to_excel(tHeader, data, 'table数据')
-        })
-      },
-      formatJson(filterVal, jsonData) {
-        return jsonData.map(v => filterVal.map(j => {
-          if (j === 'timestamp') {
-            return parseTime(v[j])
-          } else {
-            return v[j]
-          }
-        }))
+      addOption() {
+        this.options.push(this.options)
       }
     }
   }
