@@ -112,7 +112,7 @@
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogHimmaVisible">
       <el-container>
         <el-header>
-          <h1>总收益：{{profit}}</h1>
+          <h1>总收益：{{this.himma.profit}}</h1>
         </el-header>
         <el-main>
           <el-row :gutter="20">
@@ -122,23 +122,23 @@
                   <h2 align="center">起始</h2>
                 </div>
                 <div class="text item">
-                  <el-form class="small-space" :model="himma" label-position="left" label-width="0px">
-                    <el-form-item size="large" v-for="option in options">
-                      <el-select v-model="value" placeholder="请选择" style='width: 100px;'>
+                  <el-form class="small-space" :model="himma" ref="himma" label-position="left" label-width="0px">
+                    <el-form-item size="large" v-for="(item,index) in himma.materialItems" :key="item.id" prop="materialItems">
+                      <el-select v-model="himma.materialItems[index].materialId" :disabled="himma.status!='1'" placeholder="请选择" style='width: 100px;'>
                         <el-option
-                          v-for="item in option"
-                          :key="item.value"
-                          :label="item.label"
-                          :value="item.value">
+                          v-for="item in himma.materialOptions"
+                          :key="item.id"
+                          :label="item.name"
+                          :value="item.id">
                         </el-option>
                       </el-select>
-                      <el-input v-model="startCount.mss" :disabled="himma.status!='1'" style='width: 140px;'></el-input>
+                      <el-input v-model="himma.materialItems[index].startValue"  :disabled="himma.status!='1'" style='width: 140px;'></el-input>
                     </el-form-item>
-                    <el-form-item size="large">
-                      <el-button type="primary" @click="addOption()">添加
+                    <el-form-item size="large" prop="status">
+                      <el-button type="primary" :disabled="himma.status!='1'" @click="addOption()">添加
                       </el-button>
                     </el-form-item>
-                    <el-form-item size="large">
+                    <el-form-item size="large" prop="status">
                       <el-button v-if="himma.status===0" type="warning" @click="changeHimmaStatus(2)">暂停
                       </el-button>
                       <el-button v-if="himma.status===1" type="primary" @click="changeHimmaStatus(0)" round>点击开始搬砖
@@ -149,6 +149,7 @@
                       </el-button>
                       <el-button v-if="himma.status===4" style='color: #bcbcbc;' disabled>已结束
                       </el-button>
+                      <el-button @click="resetForm('himma')">重置</el-button>
                     </el-form-item>
                   </el-form>
                 </div>
@@ -161,29 +162,23 @@
                 </div>
                 <div class="text item">
                   <el-col :span="6">
-                    <el-form class="small-space" :model="himma" label-position="left" label-width="90px" style='width: 400px; margin-left:0px;'>
-                      <el-form-item label="魔刹石：">
-                        <el-input v-model="endCount.mss" :disabled="endCount.status!='1'" style='width: 150px;'></el-input>
-                      </el-form-item>
-                      <el-form-item label="挑战书：">
-                        <el-input v-model="endCount.tzs" :disabled="endCount.status!='1'" style='width: 150px;'></el-input>
-                      </el-form-item>
-                      <el-form-item label="无色：">
-                        <el-input v-model="endCount.ws" :disabled="endCount.status!='1'" style='width: 150px;'></el-input>
-                      </el-form-item>
-                      <el-form-item label="遗忘陨石：">
-                        <el-input v-model="endCount.ywys" :disabled="endCount.status!='1'" style='width: 150px;'></el-input>
-                      </el-form-item>
-                      <el-form-item label="意外收获：">
-                        <el-input v-model="endCount.ywsh" :disabled="endCount.status!='1'" style='width: 150px;'></el-input>
-                      </el-form-item>
-                      <el-form-item label="结束金币：">
-                        <el-input v-model="endCount.jb" :disabled="endCount.status!='1'" style='width: 150px;'></el-input>
+                    <el-form class="small-space" :model="himma" label-position="left" style='width: 400px; margin-left:0px;'>
+                      <el-form-item size="large" v-if="himma.status===4||himma.status===5" v-for="(item,index) in himma.materialItems" :key="item.id">
+                        <el-select v-model="himma.materialItems[index].materialId" :disabled="himma.status!='4'" placeholder="请选择" style='width: 100px;'>
+                          <el-option
+                            v-for="item in himma.materialOptions"
+                            :key="item.id"
+                            :label="item.name"
+                            :value="item.id"
+                            :disabled="true">
+                          </el-option>
+                        </el-select>
+                        <el-input v-model="himma.materialItems[index].endValue"  :disabled="himma.status!=4" style='width: 140px;'></el-input>
                       </el-form-item>
                       <el-form-item size="large">
-                        <el-button type="info" v-if="endCount.status=='1'" @click="changeEndHimmaStatus('0')">确定
+                        <el-button type="info" v-if="himma.status===4"  @click="changeHimmaStatus(5)">确定
                         </el-button>
-                        <el-button v-if="endCount.status=='0'" style='color: #bcbcbc;' disabled>已结束
+                        <el-button v-if="himma.status===5" style='color: #bcbcbc;' disabled>已结束
                         </el-button>
                       </el-form-item>
                     </el-form>
@@ -226,7 +221,7 @@
 
 <script>
   import waves from '@/directive/waves/index.js' // 水波纹指令
-  import { getHimmaTypeList, createHimma, getHimmaList, startHimma, endHimma } from '@/api/himma'
+  import { getHimmaTypeList, createHimma, getHimmaList, startHimma, endHimma, getMaterialInfo } from '@/api/himma'
 
   export default {
     name: 'table_demo',
@@ -235,74 +230,15 @@
     },
     data() {
       return {
-        options: [
-          [{
-            value: '选项1',
-            label: '黄金糕'
-          }, {
-            value: '选项2',
-            label: '双皮奶'
-          }, {
-            value: '选项3',
-            label: '蚵仔煎'
-          }, {
-            value: '选项4',
-            label: '龙须面'
-          }, {
-            value: '选项5',
-            label: '北京烤鸭'
-          }],
-          [{
-            value: '选项1',
-            label: '黄金糕'
-          }, {
-            value: '选项2',
-            label: '双皮奶'
-          }, {
-            value: '选项3',
-            label: '蚵仔煎'
-          }, {
-            value: '选项4',
-            label: '龙须面'
-          }, {
-            value: '选项5',
-            label: '北京烤鸭'
-          }]
-        ],
-        value: '',
         himmaId: 0,
-        profit: 0,
-        himmaInfo: {
-          mssCount: 0,
-          tzsCount: 0,
-          wsCount: 0,
-          ywys: 0,
-          ywsh: 0,
-          jb: 0
-        },
-        startCount: {
-          mss: 0,
-          tzs: 0,
-          ws: 0,
-          ywys: 0,
-          jb: 0,
-          status: 1
-        },
-        endCount: {
-          mss: 0,
-          tzs: 0,
-          ws: 0,
-          ywys: 3,
-          ywsh: 2,
-          jb: 0,
-          status: 1
-        },
+        // 材料价格
         price: {
           mss: 5000,
           tzs: 27000,
           ws: 95,
           ywys: 500
         },
+        // 列表
         himmaList: [
           {
             id: 1,
@@ -315,6 +251,38 @@
             type: 'BHLL'
           }
         ],
+        // 搬砖工人对应的属性
+        himma: {
+          status: 1,
+          profit: 0,
+          // 下拉框选择材料
+          materialOptions: [
+            {
+              id: 0,
+              name: '',
+              price: 0
+            }
+          ],
+          materialItems: [
+            { materialId: 1, startValue: 0, endValue: 0 }
+          ]
+        },
+        // 下拉框职业类型的获取
+        himmaType: {
+          id: undefined,
+          name: ''
+        },
+        himmaTypeList: [],
+        // dialog属性
+        dialogFormVisible: false,
+        dialogHimmaVisible: false,
+        dialogStatus: '',
+        textMap: {
+          update: '编辑',
+          create: '创建',
+          goToHimma: '搬砖'
+        },
+        tableKey: 0,
         total: null,
         listLoading: true,
         listQuery: {
@@ -324,24 +292,7 @@
           title: undefined,
           type: undefined,
           sort: '+id'
-        },
-        himmaType: {
-          id: undefined,
-          name: ''
-        },
-        himma: {
-          status: 1
-        },
-        himmaTypeList: [],
-        dialogFormVisible: false,
-        dialogHimmaVisible: false,
-        dialogStatus: '',
-        textMap: {
-          update: '编辑',
-          create: '创建',
-          goToHimma: '搬砖'
-        },
-        tableKey: 0
+        }
       }
     },
     filters: {
@@ -388,6 +339,12 @@
         }).catch(() => {
           this.loading = false
         })
+        getMaterialInfo().then(response => {
+          const data = response.data
+          this.himma.materialOptions = data.results
+        }).catch(() => {
+          this.loading = false
+        })
       },
       handleFilter() {
         this.listQuery.page = 1
@@ -402,29 +359,20 @@
         this.listQuery.start = parseInt(+time[0] / 1000)
         this.listQuery.end = parseInt((+time[1] + 3600 * 1000 * 24) / 1000)
       },
-      changeEndHimmaStatus(status) {
-        this.$message({
-          message: '操作成功',
-          type: 'success'
-        })
-        this.profit = (((this.endCount.mss - this.startCount.mss) * this.price.mss) + ((this.endCount.tzs - this.startCount.tzs) * this.price.tzs) + ((this.endCount.ws - this.startCount.ws) * this.price.ws) + ((this.endCount.ywys - this.startCount.ywys) * this.price.ywys + (this.endCount.jb - this.startCount.jb)) + Number(this.endCount.ywsh))
-        this.endCount.status = status
-        endHimma(JSON.stringify(this.himmaInfo), this.himmaId).then(response => {
-          const data = response.data
-          alert(2)
-          console.log(data.results)
-        }).catch(() => {
-          this.loading = false
-        })
-      },
       changeHimmaStatus(status) {
-        this.$message({
-          message: '操作成功',
-          type: 'success'
-        })
-        this.himma.status = status
         // 开始搬砖
         if (status === 0) {
+          const materialIds = []
+          this.himma.materialItems.forEach(function(item) {
+            materialIds.push(item.materialId)
+          })
+          if (this.isRepeat(materialIds)) {
+            this.$message({
+              message: '材料选择不能重复',
+              type: 'warning'
+            })
+            return
+          }
           startHimma(this.himmaId).then(response => {
             const data = response.data
             console.log(data.results)
@@ -432,10 +380,21 @@
             this.loading = false
           })
         }
-        // 结束搬砖
-        if (status === 4) {
-          alert(1)
+        // 搬砖结束
+        if (status === 5) {
+          endHimma(JSON.stringify(this.himma.materialItems), this.himmaId).then(response => {
+            const data = response.data
+            this.handleFilter()
+            this.himma.profit = data.results
+          }).catch(() => {
+            this.loading = false
+          })
         }
+        this.$message({
+          message: '操作成功',
+          type: 'success'
+        })
+        this.himma.status = status
       },
       handleModifyStatus(row, status) {
         this.$message({
@@ -449,6 +408,8 @@
         this.dialogFormVisible = true
       },
       goToHimmaCreate(id) {
+        this.himma.profit = 0
+        this.resetForm('himma')
         this.himmaId = id
         this.dialogStatus = 'goToHimma'
         this.dialogHimmaVisible = true
@@ -470,16 +431,27 @@
       },
       create() {
         createHimma(this.himmaType.id, this.himmaType.name).then(response => {
-          this.handleFilter()
+          const data = response.data
+          if (data.results === false) {
+            this.$notify({
+              title: '添加失败',
+              message: '人员名字重复',
+              type: 'warning',
+              duration: 2000
+            })
+            return
+          } else {
+            this.handleFilter()
+            this.dialogFormVisible = false
+            this.$notify({
+              title: '成功',
+              message: '创建成功',
+              type: 'success',
+              duration: 2000
+            })
+          }
         }).catch(() => {
           this.loading = false
-        })
-        this.dialogFormVisible = false
-        this.$notify({
-          title: '成功',
-          message: '创建成功',
-          type: 'success',
-          duration: 2000
         })
       },
       update() {
@@ -492,7 +464,31 @@
         })
       },
       addOption() {
-        this.options.push(this.options)
+        if (this.himma.materialItems.length === 5) {
+          this.$message({
+            message: '最多只能添加5个',
+            type: 'warning'
+          })
+          return
+        }
+        const materialSelected = { materialId: 1, startValue: 0, endValue: 0 }
+        this.himma.materialItems.push(materialSelected)
+      },
+      isRepeat(arr) {
+        const hash = {}
+        for (const i in arr) {
+          if (hash[arr[i]]) {
+            return true
+          }
+          // 不存在该元素，则赋值为true，可以赋任意值，相应的修改if判断条件即可
+          hash[arr[i]] = true
+        }
+        return false
+      },
+      resetForm(himma) {
+        if (this.$refs[himma] !== undefined) {
+          this.$refs[himma].resetFields()
+        }
       }
     }
   }

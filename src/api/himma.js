@@ -41,3 +41,9 @@ export function endHimma(himmaInfo, himmaId) {
     data
   })
 }
+export function getMaterialInfo() {
+  return fetch({
+    url: '/himma/getMaterialInfo',
+    method: 'get'
+  })
+}
