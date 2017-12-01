@@ -122,17 +122,20 @@
                   <h2 align="center">起始</h2>
                 </div>
                 <div class="text item">
-                  <el-form class="small-space" :model="himma" ref="himma" label-position="left" label-width="0px">
+                  <el-form class="small-space" :model="himma" ref="himma">
                     <el-form-item size="large" v-for="(item,index) in himma.materialItems" :key="item.id" prop="materialItems">
                       <el-select v-model="himma.materialItems[index].materialId" :disabled="himma.status!='1'" placeholder="请选择" style='width: 100px;'>
                         <el-option
-                          v-for="item in himma.materialOptions"
+                          v-for="item in materialOptions"
                           :key="item.id"
                           :label="item.name"
                           :value="item.id">
                         </el-option>
                       </el-select>
                       <el-input v-model="himma.materialItems[index].startValue"  :disabled="himma.status!='1'" style='width: 140px;'></el-input>
+                    </el-form-item>
+                    <el-form-item label="起始金币：" label-position="left" label-width="105px">
+                      <el-input v-model="himma.startMoney" :disabled="himma.status!='1'" style="width: 140px;"></el-input>
                     </el-form-item>
                     <el-form-item size="large" prop="status">
                       <el-button type="primary" :disabled="himma.status!='1'" @click="addOption()">添加
@@ -149,7 +152,6 @@
                       </el-button>
                       <el-button v-if="himma.status===4" style='color: #bcbcbc;' disabled>已结束
                       </el-button>
-                      <el-button @click="resetForm('himma')">重置</el-button>
                     </el-form-item>
                   </el-form>
                 </div>
@@ -161,12 +163,11 @@
                   <h2 align="center">完成</h2>
                 </div>
                 <div class="text item">
-                  <el-col :span="6">
                     <el-form class="small-space" :model="himma" label-position="left" style='width: 400px; margin-left:0px;'>
                       <el-form-item size="large" v-if="himma.status===4||himma.status===5" v-for="(item,index) in himma.materialItems" :key="item.id">
                         <el-select v-model="himma.materialItems[index].materialId" :disabled="himma.status!='4'" placeholder="请选择" style='width: 100px;'>
                           <el-option
-                            v-for="item in himma.materialOptions"
+                            v-for="item in materialOptions"
                             :key="item.id"
                             :label="item.name"
                             :value="item.id"
@@ -175,6 +176,12 @@
                         </el-select>
                         <el-input v-model="himma.materialItems[index].endValue"  :disabled="himma.status!=4" style='width: 140px;'></el-input>
                       </el-form-item>
+                      <el-form-item label="意外收获：" v-if="himma.status===4||himma.status===5" label-position="left" label-width="105px">
+                        <el-input v-model="himma.windfall" :disabled="himma.status!=4" style="width: 140px;"></el-input>
+                      </el-form-item>
+                      <el-form-item label="结束金币：" v-if="himma.status===4||himma.status===5" label-position="left" label-width="105px">
+                        <el-input v-model="himma.endMoney" :disabled="himma.status!=4" style="width: 140px;"></el-input>
+                      </el-form-item>
                       <el-form-item size="large">
                         <el-button type="info" v-if="himma.status===4"  @click="changeHimmaStatus(5)">确定
                         </el-button>
@@ -182,7 +189,6 @@
                         </el-button>
                       </el-form-item>
                     </el-form>
-                  </el-col>
                 </div>
               </el-card>
             </el-col>
@@ -192,22 +198,17 @@
                   <h2 align="center">价格</h2>
                 </div>
                 <div class="text item">
-                  <el-col :span="6" style='width: 300px;'>
-                    <el-form class="small-space" :model="himma" label-position="left" label-width="110px" style='width: 400px; margin-left:0px;'>
-                      <el-form-item label="魔刹石：">
-                        <el-input v-model="price.mss" :disabled="0!='1'" style='width: 100px;'></el-input>
+                    <el-form class="small-space" :model="price" label-position="left">
+                      <el-form-item size="large" v-for="item in materialOptions" :key="item.id">
+                          <el-form-item :label="item.name" label-position="left" label-width="105px">
+                            <el-input v-model="item.price" style="width: 140px;"></el-input>
+                          </el-form-item>
                       </el-form-item>
-                      <el-form-item label="挑战书：">
-                        <el-input v-model="price.tzs" :disabled="0!='1'" style='width: 100px;'></el-input>
-                      </el-form-item>
-                      <el-form-item label="无色：">
-                        <el-input v-model="price.ws" :disabled="0!='1'" style='width: 100px;'></el-input>
-                      </el-form-item>
-                      <el-form-item label="遗忘陨石：">
-                        <el-input v-model="price.ywys" :disabled="0!='1'" style='width: 100px;'></el-input>
+                      <el-form-item size="large">
+                        <el-button type="info" @click="changeMaterialPrice()">确定
+                        </el-button>
                       </el-form-item>
                     </el-form>
-                  </el-col>
                 </div>
               </el-card>
             </el-col>
@@ -221,7 +222,7 @@
 
 <script>
   import waves from '@/directive/waves/index.js' // 水波纹指令
-  import { getHimmaTypeList, createHimma, getHimmaList, startHimma, endHimma, getMaterialInfo } from '@/api/himma'
+  import { getHimmaTypeList, createHimma, getHimmaList, startHimma, endHimma, getMaterialInfo, changeMaterialPrice } from '@/api/himma'
 
   export default {
     name: 'table_demo',
@@ -232,12 +233,7 @@
       return {
         himmaId: 0,
         // 材料价格
-        price: {
-          mss: 5000,
-          tzs: 27000,
-          ws: 95,
-          ywys: 500
-        },
+        price: {},
         // 列表
         himmaList: [
           {
@@ -251,18 +247,21 @@
             type: 'BHLL'
           }
         ],
+        // 下拉框选择材料
+        materialOptions: [
+          {
+            id: 0,
+            name: '',
+            price: 0
+          }
+        ],
         // 搬砖工人对应的属性
         himma: {
           status: 1,
           profit: 0,
-          // 下拉框选择材料
-          materialOptions: [
-            {
-              id: 0,
-              name: '',
-              price: 0
-            }
-          ],
+          startMoney: 0,
+          endMoney: 0,
+          windfall: 0,
           materialItems: [
             { materialId: 1, startValue: 0, endValue: 0 }
           ]
@@ -341,7 +340,7 @@
         })
         getMaterialInfo().then(response => {
           const data = response.data
-          this.himma.materialOptions = data.results
+          this.materialOptions = data.results
         }).catch(() => {
           this.loading = false
         })
@@ -382,18 +381,18 @@
         }
         // 搬砖结束
         if (status === 5) {
-          endHimma(JSON.stringify(this.himma.materialItems), this.himmaId).then(response => {
+          endHimma(JSON.stringify(this.himma), this.himmaId).then(response => {
             const data = response.data
             this.handleFilter()
             this.himma.profit = data.results
           }).catch(() => {
             this.loading = false
           })
+          this.$message({
+            message: '操作成功',
+            type: 'success'
+          })
         }
-        this.$message({
-          message: '操作成功',
-          type: 'success'
-        })
         this.himma.status = status
       },
       handleModifyStatus(row, status) {
@@ -489,6 +488,16 @@
         if (this.$refs[himma] !== undefined) {
           this.$refs[himma].resetFields()
         }
+      },
+      changeMaterialPrice() {
+        changeMaterialPrice(JSON.stringify(this.materialOptions)).then(response => {
+          this.$message({
+            message: '修改价格成功',
+            type: 'success'
+          })
+        }).catch(() => {
+          this.loading = false
+        })
       }
     }
   }

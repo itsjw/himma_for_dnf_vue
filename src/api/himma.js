@@ -47,3 +47,11 @@ export function getMaterialInfo() {
     method: 'get'
   })
 }
+export function changeMaterialPrice(materialVOList) {
+  return fetch({
+    url: '/himma/changeMaterialPrice',
+    method: 'post',
+    data: materialVOList
+  })
+}
+

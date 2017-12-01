@@ -15,7 +15,7 @@
           <icon-svg icon-class="password" />
         </span>
         <el-input name="password" :type="pwdType" @keyup.enter.native="handleLogin" v-model="loginForm.password" autoComplete="on"
-          placeholder="密码" />
+                  placeholder="密码" />
         <span class='show-pwd' @click='showPwd'><icon-svg icon-class="eye" /></span>
       </el-form-item>
 
@@ -37,83 +37,83 @@
 </template>
 
 <script>
-import socialSign from './socialsignin'
+  import socialSign from './socialsignin'
 
-export default {
-  components: { socialSign },
-  name: 'login',
-  data() {
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('密码不能小于6位'))
-      } else {
-        callback()
-      }
-    }
-    return {
-      loginForm: {
-        username: '',
-        password: ''
-      },
-      loginRules: {
-        password: [{ required: true, trigger: 'blur', validator: validatePassword }]
-      },
-      pwdType: 'password',
-      loading: false,
-      showDialog: false
-    }
-  },
-  methods: {
-    showPwd() {
-      if (this.pwdType === 'password') {
-        this.pwdType = ''
-      } else {
-        this.pwdType = 'password'
-      }
-    },
-    handleLogin() {
-      this.$refs.loginForm.validate(valid => {
-        if (valid) {
-          this.loading = true
-          this.$store.dispatch('LoginByUsername', this.loginForm).then(() => {
-            this.loading = false
-            this.$router.push({ path: '/' })
-                // this.showDialog = true
-          }).catch(() => {
-            this.loading = false
-          })
+  export default {
+    components: { socialSign },
+    name: 'login',
+    data() {
+      const validatePassword = (rule, value, callback) => {
+        if (value.length < 6) {
+          callback(new Error('密码不能小于6位'))
         } else {
-          console.log('error submit!!')
-          return false
+          callback()
         }
-      })
+      }
+      return {
+        loginForm: {
+          username: '',
+          password: ''
+        },
+        loginRules: {
+          password: [{ required: true, trigger: 'blur', validator: validatePassword }]
+        },
+        pwdType: 'password',
+        loading: false,
+        showDialog: false
+      }
     },
-    afterQRScan() {
-          // const hash = window.location.hash.slice(1)
-          // const hashObj = getQueryObject(hash)
-          // const originUrl = window.location.origin
-          // history.replaceState({}, '', originUrl)
-          // const codeMap = {
-          //   wechat: 'code',
-          //   tencent: 'code'
-          // }
-          // const codeName = hashObj[codeMap[this.auth_type]]
-          // if (!codeName) {
-          //   alert('第三方登录失败')
-          // } else {
-          //   this.$store.dispatch('LoginByThirdparty', codeName).then(() => {
-          //     this.$router.push({ path: '/' })
-          //   })
-          // }
+    methods: {
+      showPwd() {
+        if (this.pwdType === 'password') {
+          this.pwdType = ''
+        } else {
+          this.pwdType = 'password'
+        }
+      },
+      handleLogin() {
+        this.$refs.loginForm.validate(valid => {
+          if (valid) {
+            this.loading = true
+            this.$store.dispatch('LoginByUsername', this.loginForm).then(() => {
+              this.loading = false
+              this.$router.push({ path: '/' })
+              // this.showDialog = true
+            }).catch(() => {
+              this.loading = false
+            })
+          } else {
+            console.log('error submit!!')
+            return false
+          }
+        })
+      },
+      afterQRScan() {
+        // const hash = window.location.hash.slice(1)
+        // const hashObj = getQueryObject(hash)
+        // const originUrl = window.location.origin
+        // history.replaceState({}, '', originUrl)
+        // const codeMap = {
+        //   wechat: 'code',
+        //   tencent: 'code'
+        // }
+        // const codeName = hashObj[codeMap[this.auth_type]]
+        // if (!codeName) {
+        //   alert('第三方登录失败')
+        // } else {
+        //   this.$store.dispatch('LoginByThirdparty', codeName).then(() => {
+        //     this.$router.push({ path: '/' })
+        //   })
+        // }
+      }
+    },
+    created() {
+      // window.addEventListener('hashchange', this.afterQRScan)
+    },
+    destroyed() {
+      // window.removeEventListener('hashchange', this.afterQRScan)
     }
-  },
-  created() {
-        // window.addEventListener('hashchange', this.afterQRScan)
-  },
-  destroyed() {
-        // window.removeEventListener('hashchange', this.afterQRScan)
   }
-}
 </script>
 
 <style rel="stylesheet/scss" lang="scss">
