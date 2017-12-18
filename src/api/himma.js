@@ -1,5 +1,5 @@
 import fetch from '@/utils/fetch'
-
+import Qs from 'qs'
 export function getHimmaTypeList() {
   return fetch({
     url: '/himma/getHimmaTypeList',
@@ -14,7 +14,9 @@ export function createHimma(typeId, name) {
   return fetch({
     url: '/himma/createHimma',
     method: 'post',
-    data
+    transformRequest: [function() {
+      return Qs.stringify(data)
+    }]
   })
 }
 export function getHimmaList() {
@@ -38,7 +40,9 @@ export function endHimma(himmaInfo, himmaId) {
   return fetch({
     url: '/himma/endHimma',
     method: 'post',
-    data
+    transformRequest: [function() {
+      return Qs.stringify(data)
+    }]
   })
 }
 export function getMaterialInfo() {
@@ -51,7 +55,10 @@ export function changeMaterialPrice(materialVOList) {
   return fetch({
     url: '/himma/changeMaterialPrice',
     method: 'post',
-    data: materialVOList
+    data: materialVOList,
+    headers: {
+      'Content-Type': 'application/json;charset=UTF-8'
+    }
   })
 }
 
